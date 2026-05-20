@@ -26,8 +26,8 @@ export const products = mysqlTable("products", {
   description: text("description"), // รายละเอียดสินค้า (อนุญาตให้ว่างได้)
   price: decimal("price", { precision: 10, scale: 2 }).notNull(), // ราคาสินค้า (ตัวเลขทศนิยม 2 ตำแหน่ง)
   stock: int("stock").notNull().default(0), // จำนวนสินค้าในสต๊อก ค่าเริ่มต้นคือ 0
-  categoryId: int("category_id").notNull(), // รหัสหมวดหมู่ (Foreign Key อ้างอิงตาราง categories)
-  userId: int("user_id").notNull(), // รหัสผู้ใช้ที่เป็นคนเพิ่มสินค้า (Foreign Key อ้างอิงตาราง users)
+  categoryId: int("category_id").notNull().references(() => categories.id), // รหัสหมวดหมู่ (Foreign Key อ้างอิงตาราง categories)
+  userId: int("user_id").notNull().references(() => users.id), // รหัสผู้ใช้ที่เป็นคนเพิ่มสินค้า (Foreign Key อ้างอิงตาราง users)
   createdAt: timestamp("created_at").defaultNow().notNull(), // วันเวลาที่สร้าง
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(), // วันเวลาที่แก้ไข
 });

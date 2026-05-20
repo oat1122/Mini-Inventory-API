@@ -13,4 +13,16 @@ export const createProductSchema = z.object({
 });
 
 // Zod Schema สำหรับอัปเดต (Update) แปลงทุกฟิลด์ให้เป็น Optional
-export const updateProductSchema = createProductSchema.partial();
+// .refine() ใช้ตรวจสอบว่าต้องมีการส่งข้อมูลมาอย่างน้อย 1 ฟิลด์
+export const updateProductSchema = createProductSchema.partial().refine(
+  (data) => Object.keys(data).length > 0,
+  "No data provided to update"
+);
+
+// Zod Schema สำหรับตรวจสอบ query params ตอนเรียกดูสินค้า
+export const productQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(10),
+  search: z.string().optional(),
+  categoryId: z.coerce.number().int().positive().optional()
+});

@@ -1,5 +1,5 @@
 import { productService } from "@/features/products/product.service";
-import { createProductSchema } from "@/features/products/product.schema";
+import { createProductSchema, productQuerySchema } from "@/features/products/product.schema";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { validateRequest } from "@/lib/validate";
 import { ApiError } from "@/lib/errors";
@@ -12,8 +12,14 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const query = Object.fromEntries(url.searchParams.entries()); // แปลงเป็น JSON object
     
-    // โยน Parameter (query) ไปให้ Service ค้นหา
-    const result = await productService.getProducts(query);
+    // 1. ตรวจสอบข้อมูล query param ด้วย Zod
+    const parsedQuery = productQuerySchema.safeParse(query);
+    if (!parsedQuery.success) {
+      return errorResponse("Invalid query parameters", parsedQuery.error.flatten().fieldErrors, 400);
+    }
+    
+    // 2. โยน Parameter (query) ไปให้ Service ค้นหา
+    const result = await productService.getProducts(parsedQuery.data);
     return successResponse(result);
   } catch (error) {
     if (error instanceof ApiError) {

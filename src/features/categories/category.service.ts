@@ -1,5 +1,6 @@
 import { categoryRepository } from "./category.repository";
-import { NotFoundError } from "@/lib/errors";
+import { productRepository } from "../products/product.repository";
+import { NotFoundError, ApiError } from "@/lib/errors";
 
 // Service Pattern: ใช้สำหรับเขียน Business Logic (ตรรกะทางธุรกิจ) 
 // โดยจะดึงข้อมูลมาจาก Repository อีกทีนึง ทำให้เราตรวจสอบเงื่อนไขก่อนลงฐานข้อมูลได้ง่าย
@@ -27,6 +28,11 @@ export class CategoryService {
 
   // แก้ไขหมวดหมู่
   async updateCategory(id: number, data: { name?: string }) {
+    // เช็คว่ามีข้อมูลส่งมาแก้ไขหรือไม่ เพื่อป้องกัน empty payload ปะทะกับ Drizzle
+    if (!data || Object.keys(data).length === 0) {
+      throw new ApiError("No data provided to update", 400);
+    }
+
     // เช็คก่อนว่ามีหมวดหมู่นี้อยู่จริงไหม ถ้าไม่มีมันจะ throw NotFoundError จากฟังก์ชัน getCategoryById ทันที
     await this.getCategoryById(id); 
     
@@ -39,7 +45,13 @@ export class CategoryService {
     // เช็คก่อนว่ามีอยู่จริงไหม
     await this.getCategoryById(id); 
     
-    // ถ้ามี ค่อยสั่งลบ
+    // เช็คว่ามีสินค้าใช้หมวดหมู่นี้อยู่หรือไม่
+    const { total } = await productRepository.findAndCountAll({ page: 1, limit: 1, categoryId: id });
+    if (total > 0) {
+      throw new ApiError("Cannot delete category because it contains products", 409);
+    }
+
+    // ถ้าไม่มีสินค้าผูกอยู่ ค่อยสั่งลบ
     await categoryRepository.delete(id);
   }
 }

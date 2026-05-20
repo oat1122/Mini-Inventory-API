@@ -8,4 +8,8 @@ export const createCategorySchema = z.object({
 
 // Zod Schema สำหรับตรวจสอบข้อมูลตอน แก้ไข (Update) หมวดหมู่
 // ใช้ .partial() แปลว่าทุกฟิลด์ใน createCategorySchema จะกลายเป็น Optional (ส่งมาหรือไม่ส่งมาก็ได้)
-export const updateCategorySchema = createCategorySchema.partial();
+// .refine() ใช้ตรวจสอบว่าต้องมีการส่งข้อมูลมาอย่างน้อย 1 ฟิลด์
+export const updateCategorySchema = createCategorySchema.partial().refine(
+  (data) => Object.keys(data).length > 0,
+  "No data provided to update"
+);

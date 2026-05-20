@@ -1,6 +1,6 @@
 import { productRepository } from "./product.repository";
 import { categoryService } from "../categories/category.service";
-import { NotFoundError } from "@/lib/errors";
+import { NotFoundError, ApiError } from "@/lib/errors";
 import { products } from "@/db/schema";
 
 type ProductQuery = { page?: string | number; limit?: string | number; search?: string; categoryId?: string | number };
@@ -13,8 +13,9 @@ export class ProductService {
   // ค้นหาสินค้าทั้งหมดแบบแบ่งหน้า
   async getProducts(query: ProductQuery) {
     // กำหนดค่าเริ่มต้น: ถ้าไม่ส่ง page มาให้เป็นหน้า 1, ถ้าไม่ส่ง limit มาให้จำกัด 10 รายการ
-    const page = Number(query.page) || 1;
-    const limit = Number(query.limit) || 10;
+    // ป้องกันการใส่ค่าลบหรือมากเกินไป (Clamping)
+    const page = Math.max(1, Number(query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(query.limit) || 10));
     const search = query.search as string | undefined;
     const categoryId = query.categoryId ? Number(query.categoryId) : undefined;
 
@@ -57,6 +58,11 @@ export class ProductService {
 
   // แก้ไขข้อมูลสินค้า
   async updateProduct(id: number, data: UpdateProduct) {
+    // เช็คว่ามีข้อมูลส่งมาแก้ไขหรือไม่ เพื่อป้องกัน empty payload ปะทะกับ Drizzle
+    if (!data || Object.keys(data).length === 0) {
+      throw new ApiError("No data provided to update", 400);
+    }
+
     // 1. เช็คก่อนว่าสินค้านี้มีอยู่จริงมั้ย
     await this.getProductById(id);
     
