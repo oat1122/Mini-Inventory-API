@@ -5,9 +5,12 @@ import { validateRequest } from "@/lib/validate";
 import { ApiError } from "@/lib/errors";
 
 // เมธอด GET สำหรับดูข้อมูลสินค้าเจาะจง 1 ชิ้น
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const product = await productService.getProductById(Number(params.id));
+    const { id: idStr } = await params;
+    const id = Number(idStr);
+    if (isNaN(id)) return errorResponse("Invalid ID format", null, 400);
+    const product = await productService.getProductById(id);
     return successResponse(product);
   } catch (error) {
     if (error instanceof ApiError) {
@@ -18,14 +21,18 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 }
 
 // เมธอด PATCH สำหรับอัปเดตข้อมูลสินค้าบางส่วน
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id: idStr } = await params;
+    const id = Number(idStr);
+    if (isNaN(id)) return errorResponse("Invalid ID format", null, 400);
+
     // 1. ให้ Zod ตรวจข้อมูลก่อน (อนุญาตให้ส่งมาแค่บางฟิลด์ได้)
     const { data, errorResponse: errRes } = await validateRequest(updateProductSchema, req);
     if (errRes) return errRes;
 
     // 2. เรียก Service ไปอัปเดตข้อมูล
-    const product = await productService.updateProduct(Number(params.id), data!);
+    const product = await productService.updateProduct(id, data!);
     return successResponse(product);
   } catch (error) {
     if (error instanceof ApiError) {
@@ -36,10 +43,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 
 // เมธอด DELETE สำหรับลบสินค้า
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id: idStr } = await params;
+    const id = Number(idStr);
+    if (isNaN(id)) return errorResponse("Invalid ID format", null, 400);
+
     // สั่งลบ
-    await productService.deleteProduct(Number(params.id));
+    await productService.deleteProduct(id);
     return successResponse(null);
   } catch (error) {
     if (error instanceof ApiError) {

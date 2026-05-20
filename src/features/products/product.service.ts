@@ -3,7 +3,7 @@ import { categoryService } from "../categories/category.service";
 import { NotFoundError, ApiError } from "@/lib/errors";
 import { products } from "@/db/schema";
 
-type ProductQuery = { page?: string | number; limit?: string | number; search?: string; categoryId?: string | number };
+type ProductQuery = { page?: number; limit?: number; search?: string; categoryId?: number };
 type NewProduct = typeof products.$inferInsert;
 type UpdateProduct = Partial<NewProduct>;
 
@@ -12,12 +12,10 @@ export class ProductService {
   
   // ค้นหาสินค้าทั้งหมดแบบแบ่งหน้า
   async getProducts(query: ProductQuery) {
-    // กำหนดค่าเริ่มต้น: ถ้าไม่ส่ง page มาให้เป็นหน้า 1, ถ้าไม่ส่ง limit มาให้จำกัด 10 รายการ
-    // ป้องกันการใส่ค่าลบหรือมากเกินไป (Clamping)
-    const page = Math.max(1, Number(query.page) || 1);
-    const limit = Math.min(100, Math.max(1, Number(query.limit) || 10));
-    const search = query.search as string | undefined;
-    const categoryId = query.categoryId ? Number(query.categoryId) : undefined;
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const search = query.search;
+    const categoryId = query.categoryId;
 
     // ไปดึงข้อมูลมาจาก Repository
     const { data, total } = await productRepository.findAndCountAll({ page, limit, search, categoryId });

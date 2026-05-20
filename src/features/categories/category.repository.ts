@@ -1,6 +1,7 @@
 import { db } from "@/db/client";
 import { categories } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { ApiError } from "@/lib/errors";
 
 // Repository Pattern: เป็นตัวกลางจัดการข้อมูลกับฐานข้อมูลโดยตรง
 // คลาสนี้จะทำหน้าที่เขียน SQL Query ด้วย Drizzle ORM
@@ -38,8 +39,16 @@ export class CategoryRepository {
 
   // ลบหมวดหมู่
   async delete(id: number) {
-    // เทียบเท่ากับ SQL: DELETE FROM categories WHERE id = ?
-    await db.delete(categories).where(eq(categories.id, id));
+    try {
+      // เทียบเท่ากับ SQL: DELETE FROM categories WHERE id = ?
+      await db.delete(categories).where(eq(categories.id, id));
+    } catch (error) {
+      const err = error as { code?: string };
+      if (err.code === "ER_ROW_IS_REFERENCED_2") {
+        throw new ApiError("Cannot delete category because it contains products", 409);
+      }
+      throw error; // ส่งต่อ Error อื่นๆ
+    }
   }
 }
 

@@ -1,5 +1,4 @@
 import { categoryRepository } from "./category.repository";
-import { productRepository } from "../products/product.repository";
 import { NotFoundError, ApiError } from "@/lib/errors";
 
 // Service Pattern: ใช้สำหรับเขียน Business Logic (ตรรกะทางธุรกิจ) 
@@ -45,13 +44,7 @@ export class CategoryService {
     // เช็คก่อนว่ามีอยู่จริงไหม
     await this.getCategoryById(id); 
     
-    // เช็คว่ามีสินค้าใช้หมวดหมู่นี้อยู่หรือไม่
-    const { total } = await productRepository.findAndCountAll({ page: 1, limit: 1, categoryId: id });
-    if (total > 0) {
-      throw new ApiError("Cannot delete category because it contains products", 409);
-    }
-
-    // ถ้าไม่มีสินค้าผูกอยู่ ค่อยสั่งลบ
+    // สั่งลบ (Database constraints จะจัดการเช็คให้ว่ามีสินค้าผูกอยู่หรือไม่)
     await categoryRepository.delete(id);
   }
 }

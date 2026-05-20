@@ -19,7 +19,8 @@ export class ProductRepository {
     
     // ถ้าส่งคำค้นหามาด้วย (search) ให้ค้นหาจากชื่อสินค้าแบบเหมือนบางส่วน (LIKE %keyword%)
     if (search) {
-      conditions.push(like(products.name, `%${search}%`));
+      const safeSearch = search.replace(/[%_]/g, "\\$&"); // ป้องกัน SQL Wildcard
+      conditions.push(like(products.name, `%${safeSearch}%`));
     }
     // ถ้าส่งหมวดหมู่มาด้วย ให้ค้นหาเจาะจงหมวดหมู่
     if (categoryId) {
