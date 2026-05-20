@@ -1,6 +1,7 @@
 import { db } from "@/db/client";
 import { products } from "@/db/schema";
 import { eq, like, and, count, SQL } from "drizzle-orm";
+import { ApiError } from "@/lib/errors";
 
 // กำหนด Type ของข้อมูลที่ใช้ตอนเพิ่มหรือแก้ไขสินค้า โดยอนุมาน(infer) มาจากโครงสร้างตาราง
 type NewProduct = typeof products.$inferInsert;
@@ -47,14 +48,31 @@ export class ProductRepository {
 
   // เพิ่มสินค้า
   async create(data: NewProduct) {
-    const [result] = await db.insert(products).values(data);
-    return this.findById(result.insertId);
+    try {
+      const [result] = await db.insert(products).values(data);
+      return this.findById(result.insertId);
+    } catch (error) {
+      const err = error as { code?: string };
+      // ดักจับ Error กรณีใส่ categoryId หรือ userId ที่ไม่มีอยู่จริง
+      if (err.code === "ER_NO_REFERENCED_ROW_2") {
+        throw new ApiError("Invalid categoryId or userId provided (Foreign Key Constraint Failed)", 400);
+      }
+      throw error;
+    }
   }
 
   // แก้ไขสินค้า
   async update(id: number, data: UpdateProduct) {
-    await db.update(products).set(data).where(eq(products.id, id));
-    return this.findById(id);
+    try {
+      await db.update(products).set(data).where(eq(products.id, id));
+      return this.findById(id);
+    } catch (error) {
+      const err = error as { code?: string };
+      if (err.code === "ER_NO_REFERENCED_ROW_2") {
+        throw new ApiError("Invalid categoryId or userId provided (Foreign Key Constraint Failed)", 400);
+      }
+      throw error;
+    }
   }
 
   // ลบสินค้า
