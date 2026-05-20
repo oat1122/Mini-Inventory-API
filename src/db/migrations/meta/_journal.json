@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1779251896245,
-      "tag": "0000_far_robbie_robertson",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1779252980676,
-      "tag": "0001_chilly_blob",
+      "when": 1779255254161,
+      "tag": "0000_complete_spot",
       "breakpoints": true
     }
   ]
