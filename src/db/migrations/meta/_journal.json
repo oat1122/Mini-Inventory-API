@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1779251896245,
+      "tag": "0000_far_robbie_robertson",
+      "breakpoints": true
+    }
+  ]
+}
