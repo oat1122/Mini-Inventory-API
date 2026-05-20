@@ -39,7 +39,7 @@ products ต้องมี owner เป็น user
 
 ## Phase 1: Setup Project
 
-ให้น้องสร้างโปรเจกต์ใหม่
+ให้สร้างโปรเจกต์ใหม่
 
 ```bash
 npx create-next-app@latest mini-inventory-api
@@ -65,7 +65,7 @@ npm install -D drizzle-kit
 
 ## Phase 2: Database Config
 
-ให้น้องสร้างไฟล์ประมาณนี้:
+ให้สร้างไฟล์ประมาณนี้:
 
 ```txt
 src/db/client.ts
